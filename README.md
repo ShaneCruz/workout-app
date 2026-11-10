@@ -11,10 +11,8 @@ This is a single-user app protected by a PIN. It has no accounts.
 - **Logging.** Records reps and weight for strength work; time, speed, incline, resistance and distance for cardio; plus RPE per set and per session. Voice notes use the browser's speech recognition.
 - **Rest timer** with an audio beep and vibration.
 - **Exercise swaps.** Any exercise can be swapped for an equivalent, such as DB Bench → Machine Chest Press. Some plans also offer "pick one" option groups.
-- **Progressive overload hints.** If every set hit the top of the rep range last session, it suggests adding weight (+5 lb at 50 lb or more, +2.5 lb below that). If the weight stays the same for 3 or more sessions without hitting the rep target, it suggests a deload to about 80%.
-- **Warm-up set calculator** for barbell lifts: the empty bar, then about 50%, 70% and 85% of the working weight.
 - **Personal records.** Detects a new max-weight PR when you log a set and celebrates it.
-- **History and progress.** A list of past sessions with details, per-exercise charts (Recharts), weekly volume and workout streak.
+- **Dashboard, history and progress.** The dashboard shows your workout streak and this week's volume compared with last week. There's a list of past sessions with details, plus per-exercise charts (Recharts).
 - **CSV export** of every logged set at `/api/export`.
 
 ## Tech stack
@@ -89,6 +87,10 @@ The app is a standard Next.js app, so it deploys to Vercel or anywhere else that
 
 ## Known gaps
 
+- **Some logic is written but not connected to the app:**
+  - `src/lib/progression.ts` has progressive-overload hints. It suggests +5 lb at 50 lb or more (+2.5 lb below that) when every set hit the top of the rep range, and a deload to about 80% after 3 or more stalled sessions. `WorkoutFlow.tsx` fetches the data, but the hint is never computed, so `ExerciseCard` never shows one.
+  - `src/lib/warmup-calculator.ts` works out warm-up sets (the empty bar, then about 50%, 70% and 85% of the working weight), but nothing uses it.
+  - `src/lib/strength-score.ts` (weekly volume and streak) is unused, because the dashboard calculates those itself.
 - `public/manifest.json` points to `icon-192.png` and `icon-512.png`, which don't exist yet.
 - The login cookie's value is just `authenticated`, so anyone who knows that can fake a login. It's fine for a private, single-user app, but use a signed or random session token before exposing it more widely.
 - `/api/seed` can be called by anyone who is logged in, and it wipes the plan tables.

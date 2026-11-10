@@ -27,7 +27,7 @@ New schema changes go in a new numbered file under `supabase/migrations/`. Never
 |---|---|
 | Workout runner | `src/app/workout/[sessionId]/page.tsx` → `components/workout/WorkoutFlow.tsx`, state machine in `hooks/useWorkoutFlow.ts` (position = group / round / exercise / side / set) |
 | Per-exercise UI | `ExerciseCard`, `IntervalCard`, `RestTimer` + `hooks/useRestTimer.ts`, `RPESelector`, `NumberStepper`, `ExerciseSwapSheet`, `VoiceNoteButton` (Web Speech API), `PRCelebration`, `WorkoutSummary` |
-| Training logic | `lib/progression.ts` (add-weight / deload hints), `lib/personal-records.ts`, `lib/warmup-calculator.ts`, `lib/strength-score.ts` (weekly volume, streak) |
+| Training logic | `lib/personal-records.ts` (used by `POST /api/logs`). **Not connected yet:** `lib/progression.ts` (add-weight / deload hints; the `fetchProgression` effect in `WorkoutFlow.tsx` is a stub, and `progressionMessages` is never filled in), `lib/warmup-calculator.ts` (no callers), `lib/strength-score.ts` (unused; `src/app/page.tsx` calculates streak and volume itself) |
 | Data helpers | `lib/db/{plans,sessions,logs,seed}.ts` |
 | Pages | `/` dashboard, `/workout` (today's plan → start a session), `/history`, `/history/[sessionId]`, `/progress`, `/login` |
 | API | `auth`, `plans?day=`, `sessions` (create; get by `id` or `limit`), `sessions/[id]/complete`, `logs` (POST set; GET by `exerciseId` + `sessionId`), `prs?exerciseId=`, `export` (CSV), `seed` |
