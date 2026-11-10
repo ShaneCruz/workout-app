@@ -1,0 +1,18 @@
+export const EXERCISE_SWAPS: Record<string, string[]> = {
+  chest_press: ['DB Bench Press', 'Barbell Bench Press', 'Machine Chest Press', 'Push-ups'],
+  incline_press: ['DB Incline Press', 'Barbell Incline Press', 'Incline Machine Press'],
+  chest_fly: ['Cable Fly', 'DB Fly', 'Pec Deck Machine'],
+  horizontal_row: ['Chest-Supported DB Row', 'Cable Row', 'Barbell Row', 'Machine Row', '1-Arm DB Row'],
+  vertical_pull: ['Lat Pulldown', 'Pull-ups', 'Assisted Pull-ups', 'Cable Pullover'],
+  shoulder_press: ['DB Shoulder Press', 'Barbell OHP', 'Machine Shoulder Press', 'Landmine Press'],
+  lateral_delt: ['Lateral Raises', 'Cable Lateral Raise', 'Machine Lateral Raise'],
+  rear_delt: ['Cable Face Pull', 'Reverse Fly', 'Rear Delt Machine'],
+  biceps: ['DB Hammer Curl', 'DB Curl', 'Barbell Curl', 'Cable Curl', 'EZ-Bar Curl'],
+  triceps: ['Triceps Pressdown', 'Overhead Triceps Extension', 'Skull Crushers', 'Dips'],
+  squat: ['Goblet Squat', 'Barbell Back Squat', 'Landmine Squat', 'Leg Press', 'Hack Squat'],
+  hip_hinge: ['DB RDL', 'Barbell RDL', 'Conventional Deadlift', 'Trap Bar Deadlift'],
+  single_leg: ['Bulgarian Split Squat', 'Lunges', 'Step-Ups', 'Single-Leg Press'],
+  glutes: ['Hip Thrust', 'Barbell Hip Thrust', 'Glute Bridge', 'Cable Kickback'],
+  hamstrings: ['Hamstring Curl', 'Lying Hamstring Curl', 'Nordic Curl', 'Good Morning'],
+  calves: ['Calf Raises', 'Seated Calf Raise', 'Leg Press Calf Raise'],
+};

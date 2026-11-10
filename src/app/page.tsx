@@ -1,65 +1,197 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Button from '@/components/ui/Button';
+
+interface SessionSummary {
+  id: string;
+  started_at: string;
+  completed_at: string;
+  total_volume: number | null;
+  rpe: number | null;
+  workout_plans: { name: string } | null;
+}
+
+export default function Dashboard() {
+  const router = useRouter();
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/sessions?limit=30')
+      .then(r => r.ok ? r.json() : [])
+      .then(setSessions)
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Calculate streak
+  let streak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dateSet = new Set(
+    sessions.map(s => new Date(s.started_at).toDateString())
+  );
+  for (let i = 0; i <= 60; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    if (i === 0 && !dateSet.has(d.toDateString())) continue;
+    if (dateSet.has(d.toDateString())) {
+      streak++;
+    } else if (d.getDay() === 0) {
+      continue; // Sunday rest
+    } else {
+      break;
+    }
+  }
+
+  // Weekly volume
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  const lastWeekStart = new Date(startOfWeek);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+  const weeklyVolume = sessions
+    .filter(s => new Date(s.started_at) >= startOfWeek)
+    .reduce((sum, s) => sum + (s.total_volume ?? 0), 0);
+
+  const lastWeekVolume = sessions
+    .filter(s => {
+      const d = new Date(s.started_at);
+      return d >= lastWeekStart && d < startOfWeek;
+    })
+    .reduce((sum, s) => sum + (s.total_volume ?? 0), 0);
+
+  const volumeTrend = lastWeekVolume > 0
+    ? ((weeklyVolume - lastWeekVolume) / lastWeekVolume * 100).toFixed(0)
+    : null;
+
+  // Calendar grid (last 7 weeks)
+  const workoutDateStrs = new Set(
+    sessions.map(s => new Date(s.started_at).toISOString().split('T')[0])
+  );
+  const calendarWeeks: { date: Date; hasWorkout: boolean }[][] = [];
+  for (let week = 6; week >= 0; week--) {
+    const days: { date: Date; hasWorkout: boolean }[] = [];
+    for (let day = 0; day < 7; day++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - (week * 7 + (6 - day)));
+      days.push({
+        date: d,
+        hasWorkout: workoutDateStrs.has(d.toISOString().split('T')[0]),
+      });
+    }
+    calendarWeeks.push(days);
+  }
+
+  if (loading) {
+    return (
+      <div className="h-dvh flex items-center justify-center bg-background">
+        <p className="text-muted">Loading...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="h-dvh flex flex-col bg-background overflow-y-auto">
+      <div className="flex-1 px-6 py-6 max-w-lg mx-auto w-full space-y-6">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Workout Tracker</h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        <Button size="lg" onClick={() => router.push('/workout')}>
+          Start Today&apos;s Workout
+        </Button>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-card rounded-2xl p-4 text-center">
+            <p className="text-3xl font-bold">{streak}</p>
+            <p className="text-xs text-muted">Day Streak</p>
+          </div>
+          <div className="bg-card rounded-2xl p-4 text-center">
+            <p className="text-3xl font-bold">
+              {weeklyVolume ? `${(weeklyVolume / 1000).toFixed(1)}k` : '0'}
+            </p>
+            <p className="text-xs text-muted">
+              Weekly Volume
+              {volumeTrend && Number(volumeTrend) !== 0 && (
+                <span className={Number(volumeTrend) > 0 ? ' text-success' : ' text-danger'}>
+                  {' '}{Number(volumeTrend) > 0 ? '↑' : '↓'}{Math.abs(Number(volumeTrend))}%
+                </span>
+              )}
+            </p>
+          </div>
         </div>
-      </main>
+
+        {/* Calendar */}
+        <div className="bg-card rounded-2xl p-4">
+          <p className="text-xs text-muted uppercase tracking-wider mb-3">Last 7 Weeks</p>
+          <div className="flex gap-1 justify-center">
+            {calendarWeeks.map((week, wi) => (
+              <div key={wi} className="flex flex-col gap-1">
+                {week.map((day, di) => (
+                  <div
+                    key={di}
+                    className={`w-5 h-5 rounded-sm ${
+                      day.hasWorkout
+                        ? 'bg-success'
+                        : day.date > today
+                          ? 'bg-transparent'
+                          : 'bg-card-border/50'
+                    }`}
+                    title={day.date.toLocaleDateString()}
+                  />
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent sessions */}
+        <div>
+          <p className="text-xs text-muted uppercase tracking-wider mb-3">Recent Sessions</p>
+          <div className="space-y-2">
+            {sessions.slice(0, 5).map(session => {
+              const d = new Date(session.started_at);
+              const duration = session.completed_at
+                ? Math.round((new Date(session.completed_at).getTime() - d.getTime()) / 60000)
+                : null;
+              return (
+                <button
+                  key={session.id}
+                  onClick={() => router.push(`/history/${session.id}`)}
+                  className="w-full bg-card rounded-xl px-4 py-3 flex items-center justify-between text-left active:bg-card-border transition-colors"
+                >
+                  <div>
+                    <p className="font-medium text-sm">{session.workout_plans?.name ?? 'Workout'}</p>
+                    <p className="text-xs text-muted">
+                      {d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      {duration ? ` · ${duration} min` : ''}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    {session.total_volume ? (
+                      <p className="text-sm font-medium">{Math.round(session.total_volume).toLocaleString()} lbs</p>
+                    ) : null}
+                    {session.rpe && <p className="text-xs text-muted">RPE {session.rpe}</p>}
+                  </div>
+                </button>
+              );
+            })}
+            {sessions.length === 0 && (
+              <p className="text-center text-muted text-sm py-4">No workouts yet. Start your first one!</p>
+            )}
+          </div>
+        </div>
+
+        {/* Nav */}
+        <div className="grid grid-cols-3 gap-2 pb-6">
+          <Button variant="secondary" onClick={() => router.push('/history')}>History</Button>
+          <Button variant="secondary" onClick={() => router.push('/progress')}>Progress</Button>
+          <Button variant="secondary" onClick={() => { window.location.href = '/api/export'; }}>Export</Button>
+        </div>
+      </div>
     </div>
   );
 }
